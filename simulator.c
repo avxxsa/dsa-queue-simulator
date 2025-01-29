@@ -1,9 +1,4 @@
 #include <stdio.h>
-
-int main() {
-    printf("Traffic Simulator Started...\n");
-    return 0;
-}
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

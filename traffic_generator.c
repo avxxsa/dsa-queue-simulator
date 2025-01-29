@@ -1,9 +1,5 @@
 #include <stdio.h>
 
-int main() {
-    printf("Traffic Generator Started...\n");
-    return 0;
-}
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
