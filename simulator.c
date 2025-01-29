@@ -7,22 +7,30 @@ int main() {
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <arpa/inet.h>
-#include <unistd.h>
+#include <winsock2.h>
+
+#pragma comment(lib, "ws2_32.lib")  // Link with Winsock library
 
 #define PORT 8080
 #define BUFFER_SIZE 1024
 
 int main() {
-    int server_fd, new_socket;
+    WSADATA wsa;
+    SOCKET server_fd, new_socket;
     struct sockaddr_in address;
     int addrlen = sizeof(address);
     char buffer[BUFFER_SIZE] = {0};
 
-    // Create socket file descriptor
-    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
-        perror("Socket failed");
-        exit(EXIT_FAILURE);
+    // Initialize Winsock
+    if (WSAStartup(MAKEWORD(2,2), &wsa) != 0) {
+        printf("WSAStartup failed. Error Code: %d\n", WSAGetLastError());
+        return 1;
+    }
+
+    // Create socket
+    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET) {
+        printf("Socket failed. Error Code: %d\n", WSAGetLastError());
+        return 1;
     }
 
     // Define server address
@@ -31,32 +39,34 @@ int main() {
     address.sin_port = htons(PORT);
 
     // Bind socket to port
-    if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
-        perror("Bind failed");
-        exit(EXIT_FAILURE);
+    if (bind(server_fd, (struct sockaddr*)&address, sizeof(address)) == SOCKET_ERROR) {
+        printf("Bind failed. Error Code: %d\n", WSAGetLastError());
+        return 1;
     }
 
     // Listen for incoming connections
-    if (listen(server_fd, 3) < 0) {
-        perror("Listen failed");
-        exit(EXIT_FAILURE);
+    if (listen(server_fd, 3) == SOCKET_ERROR) {
+        printf("Listen failed. Error Code: %d\n", WSAGetLastError());
+        return 1;
     }
 
     printf("Simulator is waiting for vehicle data...\n");
 
     // Accept client connection
-    if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0) {
-        perror("Accept failed");
-        exit(EXIT_FAILURE);
+    if ((new_socket = accept(server_fd, (struct sockaddr*)&address, &addrlen)) == INVALID_SOCKET) {
+        printf("Accept failed. Error Code: %d\n", WSAGetLastError());
+        return 1;
     }
 
     // Read data from generator
-    read(new_socket, buffer, BUFFER_SIZE);
+    recv(new_socket, buffer, BUFFER_SIZE, 0);
     printf("Received Vehicle Data: %s\n", buffer);
 
-    // Close sockets
-    close(new_socket);
-    close(server_fd);
+    // Cleanup
+    closesocket(new_socket);
+    closesocket(server_fd);
+    WSACleanup();
 
     return 0;
 }
+
