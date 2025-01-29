@@ -1,11 +1,10 @@
 #include <stdio.h>
-
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <winsock2.h>
+#include <time.h>
 
-#pragma comment(lib, "ws2_32.lib")  // Link with Winsock library
+#pragma comment(lib, "ws2_32.lib")
 
 #define PORT 8080
 #define SERVER_IP "127.0.0.1"
@@ -15,7 +14,9 @@ int main() {
     WSADATA wsa;
     SOCKET sock;
     struct sockaddr_in serv_addr;
-    char *message = "Vehicle arrives at the junction";
+    char buffer[BUFFER_SIZE];
+
+    srand(time(0));  // Seed random generator
 
     // Initialize Winsock
     if (WSAStartup(MAKEWORD(2,2), &wsa) != 0) {
@@ -39,13 +40,13 @@ int main() {
         return 1;
     }
 
-    // Send vehicle data
-    send(sock, message, strlen(message), 0);
-    printf("Vehicle data sent to simulator\n");
+    // Generate random vehicle ID and send
+    int vehicleId = rand() % 1000;  
+    sprintf(buffer, "%d", vehicleId);
+    send(sock, buffer, strlen(buffer), 0);
+    printf("Vehicle %d sent to simulator\n", vehicleId);
 
-    // Cleanup
     closesocket(sock);
     WSACleanup();
-
     return 0;
 }

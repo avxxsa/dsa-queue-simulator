@@ -1,13 +1,15 @@
 #include <stdio.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <winsock2.h>
+#include "queue.h"  // Include queue functionality
 
-#pragma comment(lib, "ws2_32.lib")  // Link with Winsock library
+#pragma comment(lib, "ws2_32.lib")
 
 #define PORT 8080
 #define BUFFER_SIZE 1024
+
+Queue vehicleQueue;  // Queue to store incoming vehicles
 
 int main() {
     WSADATA wsa;
@@ -15,6 +17,8 @@ int main() {
     struct sockaddr_in address;
     int addrlen = sizeof(address);
     char buffer[BUFFER_SIZE] = {0};
+
+    initQueue(&vehicleQueue);  // Initialize vehicle queue
 
     // Initialize Winsock
     if (WSAStartup(MAKEWORD(2,2), &wsa) != 0) {
@@ -47,21 +51,23 @@ int main() {
 
     printf("Simulator is waiting for vehicle data...\n");
 
-    // Accept client connection
-    if ((new_socket = accept(server_fd, (struct sockaddr*)&address, &addrlen)) == INVALID_SOCKET) {
-        printf("Accept failed. Error Code: %d\n", WSAGetLastError());
-        return 1;
+    while (1) {
+        if ((new_socket = accept(server_fd, (struct sockaddr*)&address, &addrlen)) == INVALID_SOCKET) {
+            printf("Accept failed. Error Code: %d\n", WSAGetLastError());
+            continue;
+        }
+
+        recv(new_socket, buffer, BUFFER_SIZE, 0);
+        int vehicleId = atoi(buffer);  // Convert received string to integer
+        enqueue(&vehicleQueue, vehicleId);
+
+        printf("Vehicle %d arrived at the junction. Queue size: %d\n", vehicleId, queueSize(&vehicleQueue));
+
+        closesocket(new_socket);
     }
 
-    // Read data from generator
-    recv(new_socket, buffer, BUFFER_SIZE, 0);
-    printf("Received Vehicle Data: %s\n", buffer);
-
     // Cleanup
-    closesocket(new_socket);
     closesocket(server_fd);
     WSACleanup();
-
     return 0;
 }
-
