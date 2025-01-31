@@ -3,26 +3,25 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 
-// Structure for a single vehicle in the queue
-typedef struct Vehicle {
-    int id;  // Unique ID for the vehicle
-    struct Vehicle* next;
-} Vehicle;
+// Structure for a Queue Node
+typedef struct Node {
+    int vehicle_id; // Each vehicle has a unique ID
+    struct Node* next;
+} Node;
 
 // Queue structure
-typedef struct {
-    Vehicle* front;
-    Vehicle* rear;
-    int size;
+typedef struct Queue {
+    Node* front;
+    Node* rear;
+    int size; // Keep track of the number of vehicles
 } Queue;
 
 // Function prototypes
-void initQueue(Queue* q);
-bool isQueueEmpty(Queue* q);
-void enqueue(Queue* q, int vehicleId);
+Queue* createQueue();
+void enqueue(Queue* q, int vehicle_id);
 int dequeue(Queue* q);
-int queueSize(Queue* q);
+int isQueueEmpty(Queue* q);
+void displayQueue(Queue* q);
 
 #endif
