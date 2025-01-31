@@ -1,95 +1,67 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <winsock2.h>
-#include "queue.h"
-#include "traffic_light.h"
 
-#pragma comment(lib, "ws2_32.lib")
+#ifdef _WIN32
+    #include <windows.h>  // Windows: Sleep()
+#else
+    #include <unistd.h>   // Linux/Mac: sleep()
+#endif
 
-#define PORT 8080
-#define BUFFER_SIZE 1024
+#include "../include/queue.h"
+#include "../include/traffic_light.h"
+#include "../include/traffic_generator.h"
 
-Queue vehicleQueue;  // Queue for incoming vehicles
-TrafficLight light;  // Traffic light object
-
-void processTraffic() {
-    if (queueSize(&vehicleQueue) > 10) {
-        setLightState(&light, GREEN);  // Priority lane rule
-        printf("🚦 Priority Lane Active: Light is GREEN\n");
-    } else {
-        setLightState(&light, RED);
-        printf("🚦 Normal Condition: Light is RED\n");
+// Function to simulate traffic at the junction
+void runSimulation(Queue* laneA, Queue* laneB, Queue* laneC, Queue* laneD, TrafficLight lights[]) {
+    while (1) {
+        // Update traffic lights
+        updateLights(lights, laneA, laneB, laneC, laneD);
+        
+        // Display the traffic light state
+        printf("\nTraffic Light Status:\n");
+        displayLights(lights, 4);
+        
+        // Let vehicles pass if the lane has GREEN light
+        for (int i = 0; i < 4; i++) {
+            if (lights[i].state == GREEN) {
+                printf("Vehicles passing from Lane %c:\n", 'A' + i);
+                for (int j = 0; j < 3 && !isQueueEmpty(i == 0 ? laneA : (i == 1 ? laneB : (i == 2 ? laneC : laneD))); j++) {
+                    int vehicle = dequeue(i == 0 ? laneA : (i == 1 ? laneB : (i == 2 ? laneC : laneD)));
+                    printf("Vehicle %d has passed.\n", vehicle);
+                }
+            }
+        }
+        
+        // Wait before updating (simulating time delay)
+        #ifdef _WIN32
+            Sleep(2000); // Windows: 2 seconds
+        #else
+            sleep(2); // Linux/Mac: 2 seconds
+        #endif
+        
+        // Stop after a few iterations for testing
+        static int iterations = 0;
+        iterations++;
+        if (iterations >= 5) break;
     }
-
-    while (!isQueueEmpty(&vehicleQueue) && light.state == GREEN) {
-        int vehicleId = dequeue(&vehicleQueue);
-        printf("🚗 Vehicle %d is passing the junction\n", vehicleId);
-        Sleep(1000);  // Simulate time taken for a vehicle to pass
-    }
-
-    printf("🚦 Traffic light changed to RED. Vehicles must stop.\n");
 }
 
 int main() {
-    WSADATA wsa;
-    SOCKET server_fd, new_socket;
-    struct sockaddr_in address;
-    int addrlen = sizeof(address);
-    char buffer[BUFFER_SIZE] = {0};
+    // Create queues for each lane
+    Queue* laneA = createQueue();
+    Queue* laneB = createQueue();
+    Queue* laneC = createQueue();
+    Queue* laneD = createQueue();
+    
+    // Generate vehicles
+    generateTraffic(laneA, laneB, laneC, laneD, 20); // Create 20 random vehicles
 
-    initQueue(&vehicleQueue);
-    setLightState(&light, RED);  // Start with red light
+    // Initialize traffic lights
+    TrafficLight lights[4];
+    initializeLights(lights, 4);
 
-    // Initialize Winsock
-    if (WSAStartup(MAKEWORD(2,2), &wsa) != 0) {
-        printf("WSAStartup failed. Error Code: %d\n", WSAGetLastError());
-        return 1;
-    }
+    // Run the traffic simulation
+    runSimulation(laneA, laneB, laneC, laneD, lights);
 
-    // Create socket
-    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET) {
-        printf("Socket failed. Error Code: %d\n", WSAGetLastError());
-        return 1;
-    }
-
-    // Define server address
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(PORT);
-
-    // Bind socket to port
-    if (bind(server_fd, (struct sockaddr*)&address, sizeof(address)) == SOCKET_ERROR) {
-        printf("Bind failed. Error Code: %d\n", WSAGetLastError());
-        return 1;
-    }
-
-    // Listen for incoming connections
-    if (listen(server_fd, 3) == SOCKET_ERROR) {
-        printf("Listen failed. Error Code: %d\n", WSAGetLastError());
-        return 1;
-    }
-
-    printf("Simulator is waiting for vehicle data...\n");
-
-    while (1) {
-        if ((new_socket = accept(server_fd, (struct sockaddr*)&address, &addrlen)) == INVALID_SOCKET) {
-            printf("Accept failed. Error Code: %d\n", WSAGetLastError());
-            continue;
-        }
-
-        recv(new_socket, buffer, BUFFER_SIZE, 0);
-        int vehicleId = atoi(buffer);
-        enqueue(&vehicleQueue, vehicleId);
-        printf("🚗 Vehicle %d added to queue. Queue size: %d\n", vehicleId, queueSize(&vehicleQueue));
-
-        processTraffic();  // Check light status and allow cars to pass
-
-        closesocket(new_socket);
-    }
-
-    closesocket(server_fd);
-    WSACleanup();
     return 0;
 }
-
