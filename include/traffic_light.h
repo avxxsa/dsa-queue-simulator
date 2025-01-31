@@ -1,13 +1,20 @@
 #ifndef TRAFFIC_LIGHT_H
 #define TRAFFIC_LIGHT_H
 
-typedef enum { RED, GREEN } LightState;
+#include "queue.h"
 
+// Enum for traffic light states
+typedef enum { RED, GREEN } TrafficLightState;
+
+// Structure for Traffic Light Control
 typedef struct {
-    LightState state;
+    TrafficLightState state;
+    int lane_id;
 } TrafficLight;
 
-void setLightState(TrafficLight* light, LightState state);
-const char* getLightStateName(LightState state);
+// Function prototypes
+void initializeLights(TrafficLight lights[], int size);
+void updateLights(TrafficLight lights[], Queue* laneA, Queue* laneB, Queue* laneC, Queue* laneD);
+void displayLights(TrafficLight lights[], int size);
 
 #endif
