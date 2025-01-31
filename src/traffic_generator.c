@@ -3,18 +3,34 @@
 #include <time.h>
 #include "../include/queue.h"
 
-void generateTraffic(Queue* laneA, Queue* laneB, Queue* laneC, Queue* laneD, int numVehicles) {
+void generateTraffic(int numVehicles) {
     srand(time(NULL)); // Seed for random numbers
 
+    // Open files for writing
+    FILE* fileA = fopen("laneA.txt", "w");
+    FILE* fileB = fopen("laneB.txt", "w");
+    FILE* fileC = fopen("laneC.txt", "w");
+    FILE* fileD = fopen("laneD.txt", "w");
+
+    if (!fileA || !fileB || !fileC || !fileD) {
+        printf("Error opening files!\n");
+        return;
+    }
+
     for (int i = 0; i < numVehicles; i++) {
-        int lane = rand() % 4;  // Randomly choose a lane (0 to 3)
-        int vehicleID = 1000 + i; // Assign a unique vehicle ID
+        int lane = rand() % 4;
+        int vehicleID = 1000 + i;
 
         switch (lane) {
-            case 0: enqueue(laneA, vehicleID); break;
-            case 1: enqueue(laneB, vehicleID); break;
-            case 2: enqueue(laneC, vehicleID); break;
-            case 3: enqueue(laneD, vehicleID); break;
+            case 0: fprintf(fileA, "%d\n", vehicleID); break;
+            case 1: fprintf(fileB, "%d\n", vehicleID); break;
+            case 2: fprintf(fileC, "%d\n", vehicleID); break;
+            case 3: fprintf(fileD, "%d\n", vehicleID); break;
         }
     }
+
+    fclose(fileA);
+    fclose(fileB);
+    fclose(fileC);
+    fclose(fileD);
 }

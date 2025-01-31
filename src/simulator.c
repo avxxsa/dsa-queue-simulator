@@ -45,7 +45,21 @@ void runSimulation(Queue* laneA, Queue* laneB, Queue* laneC, Queue* laneD, Traff
         if (iterations >= 5) break;
     }
 }
+void loadTrafficFromFile(Queue* laneA, Queue* laneB, Queue* laneC, Queue* laneD) {
+    FILE* fileA = fopen("laneA.txt", "r");
+    FILE* fileB = fopen("laneB.txt", "r");
+    FILE* fileC = fopen("laneC.txt", "r");
+    FILE* fileD = fopen("laneD.txt", "r");
 
+    int vehicleID;
+
+    if (fileA) { while (fscanf(fileA, "%d", &vehicleID) != EOF) enqueue(laneA, vehicleID); fclose(fileA); }
+    if (fileB) { while (fscanf(fileB, "%d", &vehicleID) != EOF) enqueue(laneB, vehicleID); fclose(fileB); }
+    if (fileC) { while (fscanf(fileC, "%d", &vehicleID) != EOF) enqueue(laneC, vehicleID); fclose(fileC); }
+    if (fileD) { while (fscanf(fileD, "%d", &vehicleID) != EOF) enqueue(laneD, vehicleID); fclose(fileD); }
+
+    printf("Traffic loaded from files.\n");
+}
 int main() {
     // Create queues for each lane
     Queue* laneA = createQueue();
@@ -53,8 +67,11 @@ int main() {
     Queue* laneC = createQueue();
     Queue* laneD = createQueue();
     
-    // Generate vehicles
-    generateTraffic(laneA, laneB, laneC, laneD, 20); // Create 20 random vehicles
+    // Generate vehicles and write them to files
+    generateTraffic(20); // Generate 20 random vehicles
+
+    // Load vehicles from files into queues
+    loadTrafficFromFile(laneA, laneB, laneC, laneD);
 
     // Initialize traffic lights
     TrafficLight lights[4];
