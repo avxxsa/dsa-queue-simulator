@@ -1,51 +1,39 @@
 #include <stdio.h>
-
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <winsock2.h>
+#include <time.h>
+#include "../include/queue.h"
 
-#pragma comment(lib, "ws2_32.lib")  // Link with Winsock library
+// Function to randomly generate vehicles and add them to queues
+void generateTraffic(Queue* laneA, Queue* laneB, Queue* laneC, Queue* laneD, int numVehicles) {
+    srand(time(NULL)); // Seed for random numbers
 
-#define PORT 8080
-#define SERVER_IP "127.0.0.1"
-#define BUFFER_SIZE 1024
+    for (int i = 0; i < numVehicles; i++) {
+        int lane = rand() % 4;  // Randomly choose a lane (0 to 3)
+        int vehicleID = 1000 + i; // Assign a unique vehicle ID
 
+        switch (lane) {
+            case 0: enqueue(laneA, vehicleID); break;
+            case 1: enqueue(laneB, vehicleID); break;
+            case 2: enqueue(laneC, vehicleID); break;
+            case 3: enqueue(laneD, vehicleID); break;
+        }
+    }
+}
+
+// Testing the traffic generator
 int main() {
-    WSADATA wsa;
-    SOCKET sock;
-    struct sockaddr_in serv_addr;
-    char *message = "Vehicle arrives at the junction";
+    Queue* laneA = createQueue();
+    Queue* laneB = createQueue();
+    Queue* laneC = createQueue();
+    Queue* laneD = createQueue();
 
-    // Initialize Winsock
-    if (WSAStartup(MAKEWORD(2,2), &wsa) != 0) {
-        printf("WSAStartup failed. Error Code: %d\n", WSAGetLastError());
-        return 1;
-    }
+    printf("Generating traffic...\n");
+    generateTraffic(laneA, laneB, laneC, laneD, 10); // Generate 10 vehicles
 
-    // Create socket
-    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET) {
-        printf("Socket creation failed. Error Code: %d\n", WSAGetLastError());
-        return 1;
-    }
-
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(PORT);
-    serv_addr.sin_addr.s_addr = inet_addr(SERVER_IP);
-
-    // Connect to simulator
-    if (connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) == SOCKET_ERROR) {
-        printf("Connection failed. Error Code: %d\n", WSAGetLastError());
-        return 1;
-    }
-
-    // Send vehicle data
-    send(sock, message, strlen(message), 0);
-    printf("Vehicle data sent to simulator\n");
-
-    // Cleanup
-    closesocket(sock);
-    WSACleanup();
+    printf("Lane A: "); displayQueue(laneA);
+    printf("Lane B: "); displayQueue(laneB);
+    printf("Lane C: "); displayQueue(laneC);
+    printf("Lane D: "); displayQueue(laneD);
 
     return 0;
 }
