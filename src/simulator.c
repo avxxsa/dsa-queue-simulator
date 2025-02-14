@@ -1,84 +1,68 @@
 #include <stdio.h>
 #include <stdlib.h>
-
-#ifdef _WIN32
-    #include <windows.h>  // Windows: Sleep()
-#else
-    #include <unistd.h>   // Linux/Mac: sleep()
-#endif
-
+#include <pthread.h>
+#include <unistd.h>
 #include "../include/queue.h"
-#include "../include/traffic_light.h"
-#include "../include/traffic_generator.h"
 
-// Function to simulate traffic at the junction
-void runSimulation(Queue* laneA, Queue* laneB, Queue* laneC, Queue* laneD, TrafficLight lights[]) {
-    while (1) {
-        // Update traffic lights
-        updateLights(lights, laneA, laneB, laneC, laneD);
-        
-        // Display the traffic light state
-        printf("\nTraffic Light Status:\n");
-        displayLights(lights, 4);
-        
-        // Let vehicles pass if the lane has GREEN light
-        for (int i = 0; i < 4; i++) {
-            if (lights[i].state == GREEN) {
-                printf("Vehicles passing from Lane %c:\n", 'A' + i);
-                for (int j = 0; j < 3 && !isQueueEmpty(i == 0 ? laneA : (i == 1 ? laneB : (i == 2 ? laneC : laneD))); j++) {
-                    int vehicle = dequeue(i == 0 ? laneA : (i == 1 ? laneB : (i == 2 ? laneC : laneD)));
-                    printf("Vehicle %d has passed.\n", vehicle);
-                }
-            }
-        }
-        
-        // Wait before updating (simulating time delay)
-        #ifdef _WIN32
-            Sleep(2000); // Windows: 2 seconds
-        #else
-            sleep(2); // Linux/Mac: 2 seconds
-        #endif
-        
-        // Stop after a few iterations for testing
-        static int iterations = 0;
-        iterations++;
-        if (iterations >= 5) break;
+#define FILE_NAME "vehicles.data"
+
+Queue* laneA;
+Queue* laneB;
+Queue* laneC;
+Queue* laneD;
+
+// Function to read vehicles from the file and add them to queues
+void* readTrafficData(void* arg) {
+    FILE* file = fopen(FILE_NAME, "r");
+    if (!file) {
+        printf("Error: Unable to open %s for reading.\n", FILE_NAME);
+        return NULL;
     }
+
+    int vehicleID, lane;
+    while (fscanf(file, "%d %d", &vehicleID, &lane) != EOF) {
+        switch (lane) {
+            case 0: enqueue(laneA, vehicleID); break;
+            case 1: enqueue(laneB, vehicleID); break;
+            case 2: enqueue(laneC, vehicleID); break;
+            case 3: enqueue(laneD, vehicleID); break;
+        }
+    }
+
+    fclose(file);
+    printf("Loaded traffic data from %s.\n", FILE_NAME);
+    return NULL;
 }
-void loadTrafficFromFile(Queue* laneA, Queue* laneB, Queue* laneC, Queue* laneD) {
-    FILE* fileA = fopen("laneA.txt", "r");
-    FILE* fileB = fopen("laneB.txt", "r");
-    FILE* fileC = fopen("laneC.txt", "r");
-    FILE* fileD = fopen("laneD.txt", "r");
 
-    int vehicleID;
+// Function to process the queue and simulate vehicle movement
+void* processTraffic(void* arg) {
+    for (int i = 0; i < 5; i++) {
+        printf("\nProcessing Traffic...\n");
 
-    if (fileA) { while (fscanf(fileA, "%d", &vehicleID) != EOF) enqueue(laneA, vehicleID); fclose(fileA); }
-    if (fileB) { while (fscanf(fileB, "%d", &vehicleID) != EOF) enqueue(laneB, vehicleID); fclose(fileB); }
-    if (fileC) { while (fscanf(fileC, "%d", &vehicleID) != EOF) enqueue(laneC, vehicleID); fclose(fileC); }
-    if (fileD) { while (fscanf(fileD, "%d", &vehicleID) != EOF) enqueue(laneD, vehicleID); fclose(fileD); }
+        if (!isQueueEmpty(laneA)) printf("Vehicle %d passed from Lane A\n", dequeue(laneA));
+        if (!isQueueEmpty(laneB)) printf("Vehicle %d passed from Lane B\n", dequeue(laneB));
+        if (!isQueueEmpty(laneC)) printf("Vehicle %d passed from Lane C\n", dequeue(laneC));
+        if (!isQueueEmpty(laneD)) printf("Vehicle %d passed from Lane D\n", dequeue(laneD));
 
-    printf("Traffic loaded from files.\n");
+        sleep(1); // Simulate delay between cycles
+    }
+    return NULL;
 }
+
 int main() {
-    // Create queues for each lane
-    Queue* laneA = createQueue();
-    Queue* laneB = createQueue();
-    Queue* laneC = createQueue();
-    Queue* laneD = createQueue();
-    
-    // Generate vehicles and write them to files
-    generateTraffic(20); // Generate 20 random vehicles
+    // Initialize queues
+    laneA = createQueue();
+    laneB = createQueue();
+    laneC = createQueue();
+    laneD = createQueue();
 
-    // Load vehicles from files into queues
-    loadTrafficFromFile(laneA, laneB, laneC, laneD);
+    // Create threads
+    pthread_t fileReaderThread, trafficProcessorThread;
+    pthread_create(&fileReaderThread, NULL, readTrafficData, NULL);
+    pthread_join(fileReaderThread, NULL); // Wait for file reading to finish
 
-    // Initialize traffic lights
-    TrafficLight lights[4];
-    initializeLights(lights, 4);
-
-    // Run the traffic simulation
-    runSimulation(laneA, laneB, laneC, laneD, lights);
+    pthread_create(&trafficProcessorThread, NULL, processTraffic, NULL);
+    pthread_join(trafficProcessorThread, NULL);
 
     return 0;
 }

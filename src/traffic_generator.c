@@ -1,36 +1,32 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "../include/queue.h"
 
+#define FILE_NAME "vehicles.data"
+
+// Function to generate and write vehicle data to a file
 void generateTraffic(int numVehicles) {
-    srand(time(NULL)); // Seed for random numbers
+    srand(time(NULL)); // Seed for random number generation
 
-    // Open files for writing
-    FILE* fileA = fopen("laneA.txt", "w");
-    FILE* fileB = fopen("laneB.txt", "w");
-    FILE* fileC = fopen("laneC.txt", "w");
-    FILE* fileD = fopen("laneD.txt", "w");
-
-    if (!fileA || !fileB || !fileC || !fileD) {
-        printf("Error opening files!\n");
+    // Open vehicles.data for writing
+    FILE* file = fopen(FILE_NAME, "w");
+    if (!file) {
+        printf("Error: Unable to open %s for writing.\n", FILE_NAME);
         return;
     }
 
+    // Generate vehicles and write them to the file
     for (int i = 0; i < numVehicles; i++) {
-        int lane = rand() % 4;
-        int vehicleID = 1000 + i;
-
-        switch (lane) {
-            case 0: fprintf(fileA, "%d\n", vehicleID); break;
-            case 1: fprintf(fileB, "%d\n", vehicleID); break;
-            case 2: fprintf(fileC, "%d\n", vehicleID); break;
-            case 3: fprintf(fileD, "%d\n", vehicleID); break;
-        }
+        int vehicleID = 1000 + i;  // Unique vehicle ID
+        int lane = rand() % 4;     // Random lane (0-3)
+        fprintf(file, "%d %d\n", vehicleID, lane);
     }
 
-    fclose(fileA);
-    fclose(fileB);
-    fclose(fileC);
-    fclose(fileD);
+    fclose(file);
+    printf("Generated %d vehicles and saved to %s.\n", numVehicles, FILE_NAME);
+}
+
+int main() {
+    generateTraffic(20); // Generate 20 vehicles
+    return 0;
 }
