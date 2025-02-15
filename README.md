@@ -14,30 +14,38 @@ The project models **traffic lights**, **vehicle queues**, and **priority-based 
 ---
 
 ## 🛠 How I Compiled and Ran the Program  
-### **Step 1: Compiling the Program**
+
+### **Step 1: Install Dependencies**  
+Before compiling, ensure that **SDL2 and SDL2_ttf** are installed.
+Run the following in the **MSYS2 MinGW64 terminal**:
 ```sh
-gcc src/simulator.c src/queue.c src/traffic_light.c src/traffic_generator.c -o simulator.exe -I include 
+pacman -S mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL2_ttf
+```  
+### **Step 2: Compiling the Program**
+```sh
+gcc src/simulator.c src/queue.c -o simulator.exe -I include -I C:/msys64/mingw64/include -L C:/msys64/mingw64/lib -lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf -lpthread
 ```
-### **Step 2: Running the Simulator**
+### **Step 3: Running the Simulator**
 ```sh
 .\simulator.exe
 ```
 ---
 
 ## 📸 Demo (Screenshots)
-![Traffic Simulation Demo](ss1.png)
-![Traffic Simulation Demo](ss2.png)
+![Traffic SDL2 Simulation Demo](ss1.png)
+![Traffic Terminal Output Demo](ss2.png)
 
 ---
 
 ## 📂 Project Structure
-This is how I structured my project files:
+This is how my project files are organized:
+
 📦 dsa-queue-simulator
 ├── 📂 src
 │   ├── simulator.c
 │   ├── traffic_generator.c
-│   ├── traffic_light.c
 │   ├── queue.c
+│   ├── traffic_light.c
 │   ├── test_queue.c
 │   ├── test_traffic_light.c
 │
@@ -46,21 +54,26 @@ This is how I structured my project files:
 │   ├── traffic_light.h
 │   ├── traffic_generator.h
 │
+├── 📂 .vscode
+│   ├── c_cpp_properties.json  # VS Code config for C++
+│
 ├── 📂 docs
 │   ├── report.pdf  (Final report will be added here)
 │
-├── README.md
-└── .gitignore
+├── SDL2.dll                 # Required for SDL2 on Windows
+├── SDL2_ttf.dll             # Required for SDL2 fonts on Windows
+├── vehicles.data            # Stores generated traffic data
+└── README.md
 
 ---
 
 ## 📚 References
 I referred to the following resources while implementing this project:
 - [Simple DirectMedia Layer 2.0 (SDL2) Documentation](https://wiki.libsdl.org/SDL2/FrontPage)
-- Data Structure & Algorithms (COMP202) - Assignment PDF (provided by the professor)
+- Data Structure & Algorithms (COMP202) - Assignment PDF and Skeleton Codes (provided by the professor)
 
 ---
 
-## 🔗 GitHub Repository
-You can find the complete source code here:
-[https://github.com/avxxsa/dsa-queue-simulator](https://github.com/avxxsa/dsa-queue-simulator)
+## 🔗 GitHub Repository  
+You can find the complete source code here:  
+[GitHub Repository](https://github.com/avxxsa/dsa-queue-simulator)
