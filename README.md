@@ -67,10 +67,12 @@ This is how my project files are organized:
 
 ---
 
-## 📚 References
-I referred to the following resources while implementing this project:
-- [Simple DirectMedia Layer 2.0 (SDL2) Documentation](https://wiki.libsdl.org/SDL2/FrontPage)
-- Data Structure & Algorithms (COMP202) - Assignment PDF and Skeleton Codes (provided by the professor)
+## 📚 References  
+I referred to the following resources while implementing this project:  
+- [Simple DirectMedia Layer 2.0 (SDL2) Documentation](https://wiki.libsdl.org/SDL2/FrontPage)  
+- [Professor’s Assignment PDF & Skeleton Codes]  
+- [GeeksforGeeks - Queue Implementation in C](https://www.geeksforgeeks.org/queue-data-structure/)  
+- [Multi-threading in C (pthreads)](https://computing.llnl.gov/tutorials/pthreads/)  
 
 ---
 
